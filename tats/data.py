@@ -44,9 +44,9 @@ class VideoDataset(data.Dataset):
         self.resolution = resolution
         self.sample_every_n_frames = sample_every_n_frames
 
-        folder = osp.join(data_folder, 'train' if train else 'test')
-        files = sum([glob.glob(osp.join(folder, '**', f'*.{ext}'), recursive=True)
-                     for ext in self.exts], [])
+        # folder = osp.join(data_folder, 'train' if train else 'test')
+        folder = data_folder
+        files = sum([glob.glob(osp.join(folder, '**', f'*.{ext}'), recursive=True) for ext in self.exts], [])
 
         # hacky way to compute # of classes (count # of unique parent directories)
         self.classes = list(set([get_parent_dir(f) for f in files]))
@@ -60,8 +60,7 @@ class VideoDataset(data.Dataset):
             pickle.dump(clips.metadata, open(cache_file, 'wb'))
         else:
             metadata = pickle.load(open(cache_file, 'rb'))
-            clips = VideoClips(files, sequence_length,
-                               _precomputed_metadata=metadata)
+            clips = VideoClips(files, sequence_length, _precomputed_metadata=metadata)
 
         # self._clips = clips.subset(np.arange(24))
         self._clips = clips
@@ -123,8 +122,7 @@ def preprocess(video, resolution, sequence_length=None, in_channels=3, sample_ev
         target_size = (resolution, math.ceil(w * scale))
     else:
         target_size = (math.ceil(h * scale), resolution)
-    video = F.interpolate(video, size=target_size, mode='bilinear',
-                          align_corners=False)
+    video = F.interpolate(video, size=target_size, mode='bilinear', align_corners=False)
 
     # center crop
     t, c, h, w = video.shape
@@ -227,56 +225,41 @@ class VideoData(pl.LightningDataModule):
                 dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_seg_map=True)
             elif hasattr(self.args, 'text_cond') and self.args.text_cond:
                 if self.args.smap_only:
-                    dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train,
-                                      get_game_frame=False, get_seg_map=True, get_text_desc=True)
+                    dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_game_frame=False, get_seg_map=True, get_text_desc=True)
                 else:
                     dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_text_desc=True)
             elif self.args.smap_only:
-                dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train,
-                                  get_game_frame=False, get_seg_map=True)
+                dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_game_frame=False, get_seg_map=True)
             else:
                 dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train)
         else:
             if hasattr(self.args, 'vtokens') and self.args.vtokens:
                 Dataset = HDF5Dataset_vtokens
-                dataset = Dataset(self.args.data_path, self.args.sequence_length,
-                                  train=train, resolution=self.args.resolution, spatial_length=self.args.spatial_length,
-                                  sample_every_n_frames=self.args.sample_every_n_frames)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, spatial_length=self.args.spatial_length, sample_every_n_frames=self.args.sample_every_n_frames)
             elif hasattr(self.args, 'image_folder') and self.args.image_folder:
                 Dataset = FrameDataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length,
-                                  resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
             elif hasattr(self.args, 'stft_data') and self.args.stft_data:
                 Dataset = StftDataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train,
-                                  sample_every_n_frames=self.args.sample_every_n_frames)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, sample_every_n_frames=self.args.sample_every_n_frames)
             elif hasattr(self.args, 'smap_cond') and self.args.smap_cond:
                 Dataset = HDF5Dataset_smap
-                dataset = Dataset(self.args.data_path, self.args.data_path2, self.args.sequence_length,
-                                  train=train, resolution=self.args.resolution,
-                                  image_channels1=self.args.image_channels1,
-                                  image_channels2=self.args.image_channels2)
+                dataset = Dataset(self.args.data_path, self.args.data_path2, self.args.sequence_length, train=train, resolution=self.args.resolution, image_channels1=self.args.image_channels1, image_channels2=self.args.image_channels2)
             elif hasattr(self.args, 'text_cond') and self.args.text_cond:
                 Dataset = HDF5Dataset_text
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, self.args.text_emb_model,
-                                  train=train, resolution=self.args.resolution, image_channels=self.args.image_channels,
-                                  text_len=self.args.text_seq_len, truncate_captions=self.args.truncate_captions)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, self.args.text_emb_model, train=train, resolution=self.args.resolution, image_channels=self.args.image_channels, text_len=self.args.text_seq_len, truncate_captions=self.args.truncate_captions)
             elif hasattr(self.args, 'sample_every_n_frames') and self.args.sample_every_n_frames>1:
                 Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length,
-                                  train=train, resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
             else:
                 Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length,
-                                  train=train, resolution=self.args.resolution)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution)
         return dataset
 
     def _dataloader(self, train):
         dataset = self._dataset(train)
         if dist.is_initialized():
-            sampler = data.distributed.DistributedSampler(
-                dataset, num_replicas=dist.get_world_size(), rank=dist.get_rank()
-            )
+            sampler = data.distributed.DistributedSampler(dataset, num_replicas=dist.get_world_size(), rank=dist.get_rank())
         else:
             if hasattr(self.args, 'balanced_sampler') and self.args.balanced_sampler and train:
                 sampler = BalancedRandomSampler(dataset.classes_for_sampling)
@@ -325,8 +308,7 @@ class VideoData(pl.LightningDataModule):
 
         
 class HDF5Dataset_smap(data.Dataset):
-    def __init__(self, data_file, data_file_cond, sequence_length, train=True, resolution=64, image_channels1=3,
-                 image_channels2=66):
+    def __init__(self, data_file, data_file_cond, sequence_length, train=True, resolution=64, image_channels1=3, image_channels2=66):
         super().__init__()
         self.train = train
         self.sequence_length = sequence_length
@@ -374,8 +356,7 @@ class HDF5Dataset_smap(data.Dataset):
 
 
 class HDF5Dataset_text(data.Dataset):
-    def __init__(self, data_file, sequence_length, text_emb_model, train=True, resolution=64, image_channels=3,
-                 text_len=256, truncate_captions=False):
+    def __init__(self, data_file, sequence_length, text_emb_model, train=True, resolution=64, image_channels=3, text_len=256, truncate_captions=False):
         super().__init__()
         self.train = train
         self.sequence_length = sequence_length
@@ -435,11 +416,7 @@ class HDF5Dataset_text(data.Dataset):
         assert start < start + self.sequence_length <= end
         video = torch.tensor(self._images[start:start + self.sequence_length])
         if self.text_emb_model == 'bert':
-            tokenized_text = self.tokenizer.encode(np.random.choice(self._text_annos[idx].split('\t')),
-                                                   padding='max_length',
-                                                   max_length=self.text_len,
-                                                   truncation=self.truncate_captions,
-                                                   return_tensors='pt').squeeze()
+            tokenized_text = self.tokenizer.encode(np.random.choice(self._text_annos[idx].split('\t')), padding='max_length', max_length=self.text_len, truncation=self.truncate_captions, return_tensors='pt').squeeze()
         else:
             tokenized_text = self.tokenizer.tokenize(
                 np.random.choice(self._text_annos[idx].split('\t')),
@@ -453,8 +430,7 @@ class HDF5Dataset_vtokens(data.Dataset):
     """ Dataset for video tokens stored in h5py as int64 numpy arrays.
     Reads videos in {0, ..., 255} and returns in range [-0.5, 0.5] """
 
-    def __init__(self, data_file, sequence_length, train=True, resolution=15, spatial_length=15, image_channels=3,
-                 sample_every_n_frames=1):
+    def __init__(self, data_file, sequence_length, train=True, resolution=15, spatial_length=15, image_channels=3, sample_every_n_frames=1):
         """
         Args:
             data_file: path to the pickled data file with the

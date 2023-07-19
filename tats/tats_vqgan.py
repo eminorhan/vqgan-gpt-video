@@ -74,10 +74,8 @@ class VQGAN(pl.LightningModule):
 
     @property
     def latent_shape(self):
-        input_shape = (self.args.sequence_length//self.args.sample_every_n_frames, self.args.resolution,
-                       self.args.resolution)
-        return tuple([s // d for s, d in zip(input_shape,
-                                             self.args.downsample)])
+        input_shape = (self.args.sequence_length//self.args.sample_every_n_frames, self.args.resolution, self.args.resolution)
+        return tuple([s // d for s, d in zip(input_shape, self.args.downsample)])
 
     def encode(self, x, include_embeddings=False):
         h = self.pre_vq_conv(self.encoder(x))
@@ -382,8 +380,7 @@ class SamePadConv3d(nn.Module):
         self.pad_input = pad_input
         self.padding_type = padding_type
 
-        self.conv = nn.Conv3d(in_channels, out_channels, kernel_size,
-                              stride=stride, padding=0, bias=bias)
+        self.conv = nn.Conv3d(in_channels, out_channels, kernel_size, stride=stride, padding=0, bias=bias)
 
     def forward(self, x):
         return self.conv(F.pad(x, self.pad_input, mode=self.padding_type))
@@ -405,9 +402,7 @@ class SamePadConvTranspose3d(nn.Module):
         self.pad_input = pad_input
         self.padding_type = padding_type
 
-        self.convt = nn.ConvTranspose3d(in_channels, out_channels, kernel_size,
-                                        stride=stride, bias=bias,
-                                        padding=tuple([k - 1 for k in kernel_size]))
+        self.convt = nn.ConvTranspose3d(in_channels, out_channels, kernel_size, stride=stride, bias=bias, padding=tuple([k - 1 for k in kernel_size]))
 
     def forward(self, x):
         return self.convt(F.pad(x, self.pad_input, mode=self.padding_type))
