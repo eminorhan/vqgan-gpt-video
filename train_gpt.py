@@ -32,9 +32,7 @@ def main():
     kwargs = dict()
     if args.gpus > 1:
         # find_unused_parameters = False to support gradient checkpointing
-        kwargs = dict(gpus=args.gpus,
-                      # plugins=["deepspeed_stage_2"])
-                      plugins=[pl.plugins.DDPPlugin(find_unused_parameters=False)])
+        kwargs = dict(gpus=args.gpus, plugins=[pl.plugins.DDPPlugin(find_unused_parameters=False)])
 
     # configure learning rate
     bs, base_lr = args.batch_size, args.base_lr
@@ -65,8 +63,7 @@ def main():
                 args.resume_from_checkpoint = os.path.join(ckpt_folder, ckpt_file)
                 print('will start from the recent ckpt %s'%args.resume_from_checkpoint)
 
-    trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks,
-                                            max_steps=args.max_steps, **kwargs)
+    trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks, max_steps=args.max_steps, **kwargs)
 
     trainer.fit(model, data)
 

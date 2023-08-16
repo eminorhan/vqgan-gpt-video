@@ -15,6 +15,7 @@ def main():
     parser = VQGAN.add_model_specific_args(parser)
     parser = VideoData.add_data_specific_args(parser)
     args = parser.parse_args()
+    print(args)
 
     data = VideoData(args)
     # pre-make relevant cached files if necessary
@@ -30,10 +31,9 @@ def main():
 
     callbacks = []
     callbacks.append(ModelCheckpoint(monitor='val/recon_loss', save_top_k=3, mode='min', filename='latest_checkpoint'))
-    callbacks.append(ModelCheckpoint(every_n_train_steps=3000, save_top_k=-1, filename='{epoch}-{step}-{train/recon_loss:.2f}'))
-    callbacks.append(ModelCheckpoint(every_n_train_steps=10000, save_top_k=-1, filename='{epoch}-{step}-10000-{train/recon_loss:.2f}'))
-    callbacks.append(ImageLogger(batch_frequency=750, max_images=4, clamp=True))
-    callbacks.append(VideoLogger(batch_frequency=1500, max_videos=4, clamp=True))
+    callbacks.append(ModelCheckpoint(every_n_train_steps=5000, save_top_k=-1, filename='{epoch}-{step}-{train/recon_loss:.2f}'))
+    callbacks.append(ImageLogger(batch_frequency=5000, max_images=4, clamp=True))
+    callbacks.append(VideoLogger(batch_frequency=5000, max_videos=4, clamp=True))
 
     kwargs = dict()
     if args.gpus > 1:

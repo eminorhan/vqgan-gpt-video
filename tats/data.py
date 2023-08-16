@@ -56,7 +56,7 @@ class VideoDataset(data.Dataset):
         warnings.filterwarnings('ignore')
         cache_file = osp.join(folder, f"metadata_{sequence_length}.pkl")
         if not osp.exists(cache_file):
-            clips = VideoClips(files, sequence_length, num_workers=32)
+            clips = VideoClips(files, sequence_length, num_workers=8)
             pickle.dump(clips.metadata, open(cache_file, 'wb'))
         else:
             metadata = pickle.load(open(cache_file, 'rb'))
@@ -126,6 +126,7 @@ def preprocess(video, resolution, sequence_length=None, in_channels=3, sample_ev
 
     # center crop
     t, c, h, w = video.shape
+
     w_start = (w - resolution) // 2
     h_start = (h - resolution) // 2
     video = video[:, :, h_start:h_start + resolution, w_start:w_start + resolution]
@@ -290,7 +291,7 @@ class VideoData(pl.LightningDataModule):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument('--data_path', type=str, default='/datasets01/Kinetics400_Frames/videos')
         parser.add_argument('--sequence_length', type=int, default=16)
-        parser.add_argument('--resolution', type=int, default=64)
+        parser.add_argument('--resolution', type=int, default=128)
         parser.add_argument('--batch_size', type=int, default=32)
         parser.add_argument('--num_workers', type=int, default=8)
         parser.add_argument('--image_channels', type=int, default=3)
@@ -340,8 +341,7 @@ class HDF5Dataset_smap(data.Dataset):
             start = self._idx[i]
             # end = self._idx[i + 1] if i < n_videos - 1 else n_videos
             end = self._idx[i + 1]
-            splits.extend([(start + i, start + i + self.sequence_length)
-                           for i in range(end - start - self.sequence_length + 1)])
+            splits.extend([(start + i, start + i + self.sequence_length) for i in range(end - start - self.sequence_length + 1)])
         return splits
 
     def __len__(self):
@@ -513,6 +513,7 @@ class HDF5Dataset_vtokens(data.Dataset):
 
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG']
 
+
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
 
@@ -534,10 +535,9 @@ class FrameDataset(data.Dataset):
                 frames = sorted(meta[2], key=lambda item: int(item.split('.')[0].split('_')[-1]))
             except:
                 print(meta[0], meta[2])
-            frames = [
-                os.path.join(root, item) for item in frames
-                if is_image_file(item)
-            ]
+
+            frames = [os.path.join(root, item) for item in frames if is_image_file(item)]
+            
             if len(frames) > max(0, self.sequence_length * self.sample_every_n_frames):
                 data_all.append(frames)
         self.video_num = len(data_all)
@@ -579,17 +579,14 @@ class FrameDataset(data.Dataset):
             cropsize = (half, 0, half + h, h)
 
         images = []
-        for i in range(start_idx, end_idx,
-                       self.sample_every_n_frames):
+        for i in range(start_idx, end_idx, self.sample_every_n_frames):
             path = video[i]
             img = Image.open(path)
 
             if h != w:
                 img = img.crop(cropsize)
 
-            img = img.resize(
-                (self.resolution, self.resolution),
-                Image.ANTIALIAS)
+            img = img.resize((self.resolution, self.resolution), Image.ANTIALIAS)
             img = np.asarray(img, dtype=np.float32)
             img /= 255.
             img_tensor = preprocess_image(img).unsqueeze(0)
@@ -600,8 +597,6 @@ class FrameDataset(data.Dataset):
 
     def __len__(self):
         return self.video_num
-
-
 
 
 class StftDataset(data.Dataset):
@@ -625,8 +620,7 @@ class StftDataset(data.Dataset):
         self.load_vid_len = 90
 
         folder = osp.join(data_folder, 'train' if train else 'test')
-        self.stft_paths = sum([glob.glob(osp.join(folder, f'*.{ext}'), recursive=True)
-                     for ext in self.exts], [])
+        self.stft_paths = sum([glob.glob(osp.join(folder, f'*.{ext}'), recursive=True) for ext in self.exts], [])
         self.video_paths = [path.replace("/stft/", "/video/").replace(".pickle", ".mp4") for path in self.stft_paths]
 
         warnings.filterwarnings('ignore')
@@ -636,8 +630,7 @@ class StftDataset(data.Dataset):
             pickle.dump(clips.metadata, open(cache_file, 'wb'))
         else:
             metadata = pickle.load(open(cache_file, 'rb'))
-            clips = VideoClips(self.video_paths, self.load_vid_len,
-                               _precomputed_metadata=metadata)
+            clips = VideoClips(self.video_paths, self.load_vid_len, _precomputed_metadata=metadata)
 
         # self._clips = clips.subset(np.arange(24))
         self._clips = clips
@@ -667,5 +660,4 @@ class StftDataset(data.Dataset):
         stft = (torch.tensor(stft) * 2 - 1).unsqueeze(0)
         stft = F.interpolate(stft, size=(64, 16), mode="bilinear", align_corners=False)
 
-        return dict(**preprocess(video[start:end], self.resolution, sample_every_n_frames=self.sample_every_n_frames), 
-                    stft=stft, path=self.video_paths[video_idx])
+        return dict(**preprocess(video[start:end], self.resolution, sample_every_n_frames=self.sample_every_n_frames), stft=stft, path=self.video_paths[video_idx])

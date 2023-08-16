@@ -277,10 +277,7 @@ class Encoder(nn.Module):
             self.conv_blocks.append(block)
             n_times_downsample -= 1
 
-        self.final_block = nn.Sequential(
-            Normalize(out_channels, norm_type), 
-            SiLU()
-        )
+        self.final_block = nn.Sequential(Normalize(out_channels, norm_type), SiLU())
 
         self.out_channels = out_channels
 
@@ -301,10 +298,7 @@ class Decoder(nn.Module):
         max_us = n_times_upsample.max()
         
         in_channels = n_hiddens*2**max_us
-        self.final_block = nn.Sequential(
-            Normalize(in_channels, norm_type),
-            SiLU()
-        )
+        self.final_block = nn.Sequential(Normalize(in_channels, norm_type), SiLU())
 
         self.conv_blocks = nn.ModuleList()
         for i in range(max_us):
@@ -319,6 +313,7 @@ class Decoder(nn.Module):
             n_times_upsample -= 1
 
         self.conv_last = SamePadConv3d(out_channels, image_channel, kernel_size=3)
+
     def forward(self, x):
         h = self.final_block(x)
         for i, block in enumerate(self.conv_blocks):
@@ -327,8 +322,6 @@ class Decoder(nn.Module):
             h = block.res2(h)
         h = self.conv_last(h)
         return h
-
-
 
 
 class ResBlock(nn.Module):
@@ -423,18 +416,11 @@ class NLayerDiscriminator(nn.Module):
         for n in range(1, n_layers):
             nf_prev = nf
             nf = min(nf * 2, 512)
-            sequence += [[
-                nn.Conv2d(nf_prev, nf, kernel_size=kw, stride=2, padding=padw),
-                norm_layer(nf), nn.LeakyReLU(0.2, True)
-            ]]
+            sequence += [[nn.Conv2d(nf_prev, nf, kernel_size=kw, stride=2, padding=padw), norm_layer(nf), nn.LeakyReLU(0.2, True)]]
 
         nf_prev = nf
         nf = min(nf * 2, 512)
-        sequence += [[
-            nn.Conv2d(nf_prev, nf, kernel_size=kw, stride=1, padding=padw),
-            norm_layer(nf),
-            nn.LeakyReLU(0.2, True)
-        ]]
+        sequence += [[nn.Conv2d(nf_prev, nf, kernel_size=kw, stride=1, padding=padw), norm_layer(nf), nn.LeakyReLU(0.2, True)]]
 
         sequence += [[nn.Conv2d(nf, 1, kernel_size=kw, stride=1, padding=padw)]]
 
@@ -458,7 +444,7 @@ class NLayerDiscriminator(nn.Module):
                 res.append(model(res[-1]))
             return res[-1], res[1:]
         else:
-            return self.model(input), _
+            return self.model(input)
 
 
 
@@ -477,18 +463,11 @@ class NLayerDiscriminator3D(nn.Module):
         for n in range(1, n_layers):
             nf_prev = nf
             nf = min(nf * 2, 512)
-            sequence += [[
-                nn.Conv3d(nf_prev, nf, kernel_size=kw, stride=2, padding=padw),
-                norm_layer(nf), nn.LeakyReLU(0.2, True)
-            ]]
+            sequence += [[nn.Conv3d(nf_prev, nf, kernel_size=kw, stride=2, padding=padw), norm_layer(nf), nn.LeakyReLU(0.2, True)]]
 
         nf_prev = nf
         nf = min(nf * 2, 512)
-        sequence += [[
-            nn.Conv3d(nf_prev, nf, kernel_size=kw, stride=1, padding=padw),
-            norm_layer(nf),
-            nn.LeakyReLU(0.2, True)
-        ]]
+        sequence += [[nn.Conv3d(nf_prev, nf, kernel_size=kw, stride=1, padding=padw), norm_layer(nf), nn.LeakyReLU(0.2, True)]]
 
         sequence += [[nn.Conv3d(nf, 1, kernel_size=kw, stride=1, padding=padw)]]
 
@@ -512,5 +491,4 @@ class NLayerDiscriminator3D(nn.Module):
                 res.append(model(res[-1]))
             return res[-1], res[1:]
         else:
-            return self.model(input), _
-
+            return self.model(input)
