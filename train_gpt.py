@@ -26,7 +26,6 @@ def main():
 
     callbacks = []
     callbacks.append(ModelCheckpoint(every_n_train_steps=10000, save_top_k=-1, filename='{epoch}-{step}-{train/loss:.2f}'))
-    callbacks.append(ModelCheckpoint(every_n_train_steps=50000, save_top_k=-1, filename='{epoch}-{step}-{train/loss:.2f}'))
     callbacks.append(ModelCheckpoint(monitor='val/loss', mode='min', save_top_k=3, filename='best_checkpoint'))
 
     kwargs = dict()
@@ -40,8 +39,7 @@ def main():
     accumulate_grad_batches = args.accumulate_grad_batches or 1
     print(f"accumulate_grad_batches = {accumulate_grad_batches}")
     model.learning_rate = accumulate_grad_batches * ngpu * bs * base_lr
-    print("Setting learning rate to {:.2e} = {} (accumulate_grad_batches) * {} (num_gpus) * {} (batchsize) * {:.2e} (base_lr)".format(
-        model.learning_rate, accumulate_grad_batches, ngpu, bs, base_lr))
+    print("Setting lr to {:.2e} = {} (accumulate_grad_batches) * {} (num_gpus) * {} (batchsize) * {:.2e} (base_lr)".format(model.learning_rate, accumulate_grad_batches, ngpu, bs, base_lr))
 
     # load the most recent checkpoint file
     base_dir = os.path.join(args.default_root_dir, 'lightning_logs')
@@ -70,4 +68,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
