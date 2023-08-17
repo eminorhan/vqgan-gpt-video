@@ -1,33 +1,6 @@
-# Long Video Generation with Time-Agnostic VQGAN and Time-Sensitive Transformer (ECCV 2022)
+# VQGAN-GPT for video
 
-My personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TATS) repository for video generation customized for my own purposes.
-
-[Project Website](https://songweige.github.io/projects/tats) | [Video](https://youtu.be/WZj7vW2mTJo) | [Paper](https://arxiv.org/abs/2204.03638)
-
-<p align="center">
-    <img src=assets/tats-ucf101.gif width="852" height="284" />
-</p>
-<p align="center">
-    <img src=assets/tats_sky_long_high_res.gif width="852" height="210" />
-</p>
-
-
-**tl;dr** We propose TATS, a long video generation framework that is trained on videos with tens of frames while it is able to generate videos with thousands of frames using sliding window.
-
-## Setup
-```
-  conda create -n tats python=3.8
-  conda activate tats
-  conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
-  pip install pytorch-lightning==1.5.4
-  pip install einops ftfy h5py imageio imageio-ffmpeg regex scikit-video tqdm
-```
-#### Datasets and trained models
-UCF-101: [official data](https://www.crcv.ucf.edu/data/UCF101.php), [VQGAN](https://drive.google.com/file/d/15Otpyr7v6Wnyw2HfQr_cuaRsBiSMd7Rh/view?usp=sharing), [TATS-base](https://drive.google.com/file/d/1Nxt35mmBDuNANxHP0p8WBMWXOQ-YPkus/view?usp=sharing), [TATS-base-uncond](https://drive.google.com/file/d/1pQsMdO2b84m7asp_lNg44c_UE5DUC6pa/view?usp=sharing) <br>
-Sky-Timelapse: [official data](https://github.com/weixiong-ur/mdgan), [VQGAN](https://drive.google.com/file/d/1ExV0XdJKlGP4lzn0X2W9307X-DE240iW/view?usp=sharing), [TATS-base](https://drive.google.com/file/d/1mtd_mC0ZEvImlPXAdda2-4CvE-10Ljci/view?usp=sharing) <br>
-Taichi-HD: [official data](https://github.com/AliaksandrSiarohin/first-order-model/blob/master/data/taichi-loading/README.md), [VQGAN](https://drive.google.com/file/d/1hcWIADkDsm916Xkxfz1YbljHU2ZAQFpQ/view?usp=sharing), [TATS-base](https://drive.google.com/file/d/10j0p4PlkZwqQd7CmZmk9-4_ZboW4r03R/view?usp=sharing) <br>
-MUGEN: [official data](https://mugen-org.github.io/download), [VQGAN](https://www.dropbox.com/s/1fjfvapsre3jzjv/vqgan_mugen_256_41616_epoch%3D18-step%3D19999.ckpt?dl=1), [TATS-base](https://www.dropbox.com/s/45y44klhv04yzx8/coinrun_vqvae_lpips_gpt_16_256_41616_19999__epoch%3D59-step%3D379999-train.ckpt?dl=1) <br>
-AudioSet-Drums: [official data](https://www.dropbox.com/s/7ykgybrc8nb3lgf/AudioSet_Drums.zip?dl=0), [Video-VQGAN](https://drive.google.com/file/d/1ZpQkVUoGWShL2M8phTzyO6W9-uYPJ40J/view?usp=sharing), [STFT-VQGAN](https://drive.google.com/file/d/1CNQLfgazb7OI_c69RWUdhO56mg-9HN-o/view?usp=sharing), [TATS-base](https://drive.google.com/file/d/1eHP0eSv3s-NGAv60HbF3AZsp3SBvR70u/view?usp=sharing) <br>
+This is my personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TATS) repository for video generation customized for my own purposes.
 
 ## Synthesis
 

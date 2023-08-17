@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:a100:4
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=480GB
-#SBATCH --time=00:10:00
+#SBATCH --time=16:00:00
 #SBATCH --job-name=train_gpt
 #SBATCH --output=train_gpt_%A_%a.out
 #SBATCH --array=0
@@ -17,7 +17,7 @@ export WORLD_SIZE=4
 srun python -u train_gpt.py \
     --num_workers 16 \
     --val_check_interval 0.5 \
-    --progress_bar_refresh_rate 500 \
+    --progress_bar_refresh_rate 10000 \
     --gpus 4 \
     --sync_batchnorm \
     --batch_size 8 \

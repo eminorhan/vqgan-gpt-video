@@ -15,7 +15,7 @@ export MASTER_PORT=$(shuf -i 10000-65500 -n 1)
 export WORLD_SIZE=4
 
 srun python -u train_vqgan.py \
-    --embedding_dim 256 \
+    --embedding_dim 384 \
     --n_codes 16384 \
     --n_hiddens 32 \
     --downsample 4 8 8 \
@@ -24,7 +24,7 @@ srun python -u train_vqgan.py \
     --sync_batchnorm \
     --batch_size 4 \
     --num_workers 16 \
-    --accumulate_grad_batches 6 \
+    --accumulate_grad_batches 8 \
     --progress_bar_refresh_rate 5000 \
     --max_steps 2000000 \
     --gradient_clip_val 1.0 \
