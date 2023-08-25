@@ -15,23 +15,23 @@ export MASTER_PORT=$(shuf -i 10000-65500 -n 1)
 export WORLD_SIZE=4
 
 srun python -u train_vqgan.py \
-    --embedding_dim 384 \
+    --embedding_dim 256 \
     --n_codes 16384 \
     --n_hiddens 32 \
-    --downsample 4 8 8 \
+    --downsample 4 16 16 \
     --no_random_restart \
     --gpus 4 \
     --sync_batchnorm \
     --batch_size 4 \
     --num_workers 16 \
-    --accumulate_grad_batches 8 \
-    --progress_bar_refresh_rate 5000 \
+    --accumulate_grad_batches 6 \
+    --progress_bar_refresh_rate 10000 \
     --max_steps 2000000 \
     --gradient_clip_val 1.0 \
     --lr 0.00003 \
     --data_path "/scratch/eo41/data-video/minute/S" \
     --default_root_dir "/scratch/eo41/vqgan-gpt-video/models" \
-    --resolution 128 \
+    --resolution 256 \
     --sequence_length 16 \
     --discriminator_iter_start 100000 \
     --norm_type batch \

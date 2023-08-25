@@ -22,7 +22,6 @@ import pytorch_lightning as pl
 
 from .coinrun.coinrun_data import CoinRunDataset
 from .coinrun.tokenizer import tokenizer
-# from transformers import BertTokenizer
 
 
 class VideoDataset(data.Dataset):
@@ -44,8 +43,7 @@ class VideoDataset(data.Dataset):
         self.resolution = resolution
         self.sample_every_n_frames = sample_every_n_frames
 
-        # folder = osp.join(data_folder, 'train' if train else 'test')
-        folder = data_folder
+        folder = osp.join(data_folder, 'train' if train else 'test')
         files = sum([glob.glob(osp.join(folder, '**', f'*.{ext}'), recursive=True) for ext in self.exts], [])
 
         # hacky way to compute # of classes (count # of unique parent directories)
@@ -54,15 +52,7 @@ class VideoDataset(data.Dataset):
         self.class_to_label = {c: i for i, c in enumerate(self.classes)}
 
         warnings.filterwarnings('ignore')
-        cache_file = osp.join(folder, f"metadata_{sequence_length}.pkl")
-        if not osp.exists(cache_file):
-            clips = VideoClips(files, sequence_length, num_workers=8)
-            pickle.dump(clips.metadata, open(cache_file, 'wb'))
-        else:
-            metadata = pickle.load(open(cache_file, 'rb'))
-            clips = VideoClips(files, sequence_length, _precomputed_metadata=metadata)
-
-        # self._clips = clips.subset(np.arange(24))
+        clips = VideoClips(files, sequence_length, num_workers=64)
         self._clips = clips
 
     @property
