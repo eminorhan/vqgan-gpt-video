@@ -123,15 +123,13 @@ def sample_long_fast(gpt, temporal_infer, spatial_infer, temporal_train, spatial
         index_sample_all = torch.zeros([batch_size, temporal_infer*spatial_infer*spatial_infer]).long().cuda()
         c_indices = repeat(torch.tensor([class_label]), '1 -> b 1', b=batch_size).to(gpt.device)  # class token
         t1 = time.time()
-        index_sample_all[:,:temporal_sample_pos*steps] = sample_with_past(c_indices, gpt.transformer, steps=temporal_sample_pos*steps,
-                                        sample_logits=True, top_k=args.top_k, temperature=temperature, top_p=args.top_p)
+        index_sample_all[:,:temporal_sample_pos*steps] = sample_with_past(c_indices, gpt.transformer, steps=temporal_sample_pos*steps, sample_logits=True, top_k=args.top_k, temperature=temperature, top_p=args.top_p)
         for t_id in range(temporal_infer-temporal_sample_pos):
         # for t_id in tqdm.tqdm(range(temporal_infer-1)):
             i_start = t_id*slice_n_code
             i_end = (temporal_sample_pos+t_id)*slice_n_code
             x_past = index_sample_all[:,i_start:i_end]
-            index_sample_all[:,i_end:i_end+steps] = sample_with_past(torch.cat([c_indices, x_past], dim=1), gpt.transformer, steps=steps,
-                                            sample_logits=True, top_k=args.top_k, temperature=temperature, top_p=args.top_p)
+            index_sample_all[:,i_end:i_end+steps] = sample_with_past(torch.cat([c_indices, x_past], dim=1), gpt.transformer, steps=steps, sample_logits=True, top_k=args.top_k, temperature=temperature, top_p=args.top_p)
         torch.cuda.empty_cache()
         index_sample_all = index_sample_all.reshape([batch_size, temporal_infer, spatial_infer, spatial_infer])
         index_sample_all = torch.clamp(index_sample_all-gpt.cond_stage_vocab_size, min=0, max=gpt.first_stage_model.n_codes-1)

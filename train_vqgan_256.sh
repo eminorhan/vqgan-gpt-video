@@ -25,15 +25,15 @@ srun python -u train_vqgan.py \
     --batch_size 4 \
     --num_workers 16 \
     --accumulate_grad_batches 6 \
-    --progress_bar_refresh_rate 10000 \
+    --progress_bar_refresh_rate 1000 \
     --max_steps 2000000 \
     --gradient_clip_val 1.0 \
     --lr 0.00003 \
     --data_path "/scratch/eo41/data-video/minute/S" \
-    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models" \
+    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_256" \
     --resolution 256 \
     --sequence_length 16 \
-    --discriminator_iter_start 100000 \
+    --discriminator_iter_start 18000 \
     --norm_type batch \
     --perceptual_weight 4 \
     --image_gan_weight 1 \

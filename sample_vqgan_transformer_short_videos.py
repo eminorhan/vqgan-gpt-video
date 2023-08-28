@@ -33,15 +33,12 @@ args = parser.parse_args()
 gpt = load_transformer(args.gpt_ckpt, vqgan_ckpt=args.vqgan_ckpt).cuda().eval()
 
 @torch.no_grad()
-def sample(model, batch_size, class_label, steps=256, temperature=None, top_k=None, callback=None,
-                            verbose_time=False, top_p=None, latent_shape=(4, 16, 16), n_cond=0):
+def sample(model, batch_size, class_label, steps=256, temperature=None, top_k=None, callback=None, verbose_time=False, top_p=None, latent_shape=(4, 16, 16), n_cond=0):
     log = dict()
     assert type(class_label) == int, f'expecting type int but type is {type(class_label)}'
     c_indices = repeat(torch.tensor([class_label]), '1 -> b 1', b=batch_size).to(model.device)  # class token
     t1 = time.time()
-    index_sample = sample_with_past(c_indices, model.transformer, steps=steps,
-                                    sample_logits=True, top_k=top_k, callback=callback,
-                                    temperature=temperature, top_p=top_p)
+    index_sample = sample_with_past(c_indices, model.transformer, steps=steps, sample_logits=True, top_k=top_k, callback=callback, temperature=temperature, top_p=top_p)
     if verbose_time:
         sampling_time = time.time() - t1
         print(f"Full sampling takes about {sampling_time:.2f} seconds.")
@@ -74,8 +71,7 @@ if args.class_cond:
         for class_label in range(gpt.class_cond_dim):
             for sample_id in range(n_batch_class):
                 class_label = np.random.randint(gpt.class_cond_dim) if not args.compute_fvd else class_label
-                logs = sample(gpt, batch_size=args.batch_size, class_label=class_label, steps=steps, n_cond=gpt.class_cond_dim, 
-                              temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, latent_shape=gpt.first_stage_model.latent_shape)
+                logs = sample(gpt, batch_size=args.batch_size, class_label=class_label, steps=steps, n_cond=gpt.class_cond_dim, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, latent_shape=gpt.first_stage_model.latent_shape)
                 if args.save_videos:
                     save_video_grid(logs['samples'], os.path.join(save_dir, 'generation_%d_%d.avi'%(class_label, sample_id)), n_row)
                 all_data.append(logs['samples'].cpu().data.numpy()) # 256*4 x 8 x 3 x 16 x 128 x 128
@@ -83,8 +79,7 @@ else:
     n_batch = args.n_sample//args.batch_size+1
     with torch.no_grad():
         for sample_id in range(n_batch):
-            logs = sample(gpt, batch_size=args.batch_size, class_label=0, steps=steps, 
-                          temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, latent_shape=gpt.first_stage_model.latent_shape)
+            logs = sample(gpt, batch_size=args.batch_size, class_label=0, steps=steps, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, latent_shape=gpt.first_stage_model.latent_shape)
             if args.save_videos:
                 save_video_grid(logs['samples'], os.path.join(save_dir, 'generation_%d.avi'%(sample_id)), n_row)
             all_data.append(logs['samples'].cpu().data.numpy()) # 256*4 x 8 x 3 x 16 x 128 x 128

@@ -31,9 +31,9 @@ def main():
 
     callbacks = []
     callbacks.append(ModelCheckpoint(monitor='val/recon_loss', save_top_k=3, mode='min', filename='latest_checkpoint'))
-    callbacks.append(ModelCheckpoint(every_n_train_steps=10000, save_top_k=-1, filename='{epoch}-{step}-{train/recon_loss:.2f}'))
-    callbacks.append(ImageLogger(batch_frequency=10000, max_images=1, clamp=True))
-    callbacks.append(VideoLogger(batch_frequency=10000, max_videos=1, clamp=True))
+    callbacks.append(ModelCheckpoint(every_n_train_steps=1000, save_top_k=-1, filename='{epoch}-{step}-{train/recon_loss:.2f}'))
+    callbacks.append(ImageLogger(batch_frequency=1000, max_images=1, clamp=True))
+    callbacks.append(VideoLogger(batch_frequency=1000, max_videos=1, clamp=True))
 
     kwargs = dict()
     if args.gpus > 1:

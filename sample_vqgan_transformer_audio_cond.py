@@ -31,13 +31,10 @@ data = VideoData(gpt.args)
 loader = data.test_dataloader()
 
 @torch.no_grad()
-def sample(model, batch_size, cond, steps=256, temperature=None, top_k=None, callback=None,
-                            verbose_time=False, top_p=None, latent_shape=(4, 16, 16), n_cond=0):
+def sample(model, batch_size, cond, steps=256, temperature=None, top_k=None, callback=None, verbose_time=False, top_p=None, latent_shape=(4, 16, 16), n_cond=0):
     log = dict()
     t1 = time.time()
-    index_sample = sample_with_past(cond, model.transformer, steps=steps,
-                                    sample_logits=True, top_k=top_k, callback=callback,
-                                    temperature=temperature, top_p=top_p)
+    index_sample = sample_with_past(cond, model.transformer, steps=steps, sample_logits=True, top_k=top_k, callback=callback, temperature=temperature, top_p=top_p)
     if verbose_time:
         sampling_time = time.time() - t1
         print(f"Full sampling takes about {sampling_time:.2f} seconds.")
@@ -60,8 +57,7 @@ with torch.no_grad():
         batch = loader.dataset.__getitem__(sample_id)
         x, c = gpt.get_xc(batch)
         _, c_indices = gpt.encode_to_c(c.unsqueeze(0).cuda())
-        logs = sample(gpt, batch_size=1, cond=c_indices, steps=steps, n_cond=gpt.cond_stage_vocab_size, 
-                      temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=True, latent_shape=gpt.first_stage_model.latent_shape)
+        logs = sample(gpt, batch_size=1, cond=c_indices, steps=steps, n_cond=gpt.cond_stage_vocab_size, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=True, latent_shape=gpt.first_stage_model.latent_shape)
         save_video_grid(logs['samples'], os.path.join(save_dir, 'generation_%d.avi'%(sample_id)), 1)
         save_video_grid(torch.clamp(x.unsqueeze(0), -0.5, 0.5) + 0.5, os.path.join(save_dir, 'groundtruth_%d.avi'%(sample_id)), 1)
         copyfile(batch['path'], os.path.join(save_dir, 'groundtruth_%s_%d.avi'%(os.path.basename(batch['path'])[:-len('.mp4')], sample_id)))
