@@ -1,7 +1,9 @@
 **/__pycache__/
-models/
+models_128/
+models_256/
+models_gpt/
+models_vqgan/
 
-*.mp4
 *.png
 *.egg-info
 .pyc

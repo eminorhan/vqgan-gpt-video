@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=480GB
 #SBATCH --time=48:00:00
-#SBATCH --job-name=train_vqgan
-#SBATCH --output=train_vqgan_%A_%a.out
+#SBATCH --job-name=train_vqgan_256
+#SBATCH --output=train_vqgan_256_%A_%a.out
 #SBATCH --array=0
 
 export MASTER_ADDR=$(hostname -s)

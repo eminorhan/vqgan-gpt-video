@@ -17,7 +17,7 @@ export WORLD_SIZE=4
 srun python -u train_gpt.py \
     --num_workers 16 \
     --val_check_interval 0.5 \
-    --progress_bar_refresh_rate 10000 \
+    --progress_bar_refresh_rate 1000 \
     --gpus 4 \
     --sync_batchnorm \
     --batch_size 8 \
