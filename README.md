@@ -4,7 +4,7 @@ This is my personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TAT
 
 ## Training
 
-Example usages of training the VQGAN and transformers are shown below. Explanation of the flags that are opted to change according to different settings:
+The VQGAN and GPT parts of the model are trained separately. Example usages for training each partare provided below. Description of some of the flags:
 
 - `data_path`: path to the dataset folder.
 - `default_root_dir`: path to save the checkpoints and the tensorboard logs.
@@ -64,7 +64,7 @@ python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress
 
 ## Generation
 
-1. **Short videos:** To sample the videos of the same length with the training data, use the code under `scripts/` with the following flags:
+1. **Short videos:** To sample the videos of the same length as the training data, use the code under `scripts/` with the following flags:
 
 - `gpt_ckpt`: path to the trained transformer checkpoint.
 - `vqgan_ckpt`: path to the trained VQGAN checkpoint.
@@ -88,7 +88,7 @@ python sample_vqgan_transformer_short_videos.py \
     --top_k 2048 --top_p 0.8 --dataset {DATANAME} --compute_fvd --save_videos
 ```
 
-2. **Long videos:** To sample the videos with a length longer than the training length with a sliding window, use the following script.
+2. **Long videos:** To sample the videos longer than the training length with a sliding window, use the following script.
 
 - `sample_length`: number of latent frames to be generated.
 - `temporal_sample_pos`: position of the frame that the sliding window approach generates.
