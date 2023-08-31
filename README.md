@@ -2,7 +2,67 @@
 
 This is my personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TATS) repository for video generation customized for my own purposes.
 
-## Synthesis
+## Training
+
+Example usages of training the VQGAN and transformers are shown below. Explanation of the flags that are opted to change according to different settings:
+
+- `data_path`: path to the dataset folder.
+- `default_root_dir`: path to save the checkpoints and the tensorboard logs.
+- `vqvae`: path to the trained VQGAN checkpoint.
+- `resolution`: the resolution of the training video clips.
+- `sequence_length`: frame number of the training video clips.
+- `discriminator_iter_start`: the step id to start the GAN losses.
+- `image_folder`: should be used when the dataset contains frames instead of videos, e.g. Sky Time-lapse.
+- `unconditional`: when no conditional information is available, e.g. Sky Time-lapse, use this flag.
+- `sample_every_n_frames`: number of frames to skip in the real video data, e.g. please set it to 4 when training on the Taichi-HD dataset.
+- `downsample`: sample rate in the dimensions of time, height, and width.
+- `no_random_restart`: whether to re-initialize the codebook tokens.
+
+### VQGAN
+```
+python train_vqgan.py --embedding_dim 256 --n_codes 16384 --n_hiddens 32 --downsample 4 8 8 --no_random_restart \
+                      --gpus 8 --sync_batchnorm --batch_size 2 --num_workers 32 --accumulate_grad_batches 6 \
+                      --progress_bar_refresh_rate 500 --max_steps 2000000 --gradient_clip_val 1.0 --lr 3e-5 \
+                      --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
+                      --resolution 128 --sequence_length 16 --discriminator_iter_start 10000 --norm_type batch \
+                      --perceptual_weight 4 --image_gan_weight 1 --video_gan_weight 1  --gan_feat_weight 4
+```
+
+### Transformer
+
+#### TATS-base Transformer
+
+```
+python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress_bar_refresh_rate 500 \
+                        --gpus 8 --sync_batchnorm --batch_size 3 --unconditional \
+                        --vqvae {VQGAN-CKPT} --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
+                        --vocab_size 16384 --block_size 1024 --n_layer 24 --n_head 16 --n_embd 1024  \
+                        --resolution 128 --sequence_length 16 --max_steps 2000000
+```
+
+To train a conditional transformer, remove the `--unconditional` flag and use the following flags
+
+- `cond_stage_key`: what kind of conditional information to be used. It can be `label`, `text`, or `stft`.
+- `stft_vqvae`: path to the trained VQGAN checkpoint for STFT features.
+- `text_cond`: use this flag to indicate BPE encoded text.
+
+
+#### TATS-hierarchical Transformer
+```
+python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress_bar_refresh_rate 500 \
+                        --gpus 8 --sync_batchnorm --batch_size 3 --unconditional \
+                        --vqvae {VQGAN-CKPT} --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
+                        --vocab_size 16384 --block_size 1280 --n_layer 24 --n_head 16 --n_embd 1024  \
+                        --resolution 128 --sequence_length 20 --spatial_length 128 --n_unmasked 256 --max_steps 2000000
+
+python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress_bar_refresh_rate 500 \
+                        --gpus 8 --sync_batchnorm --batch_size 4 --unconditional \
+                        --vqvae {VQGAN-CKPT} --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
+                        --vocab_size 16384 --block_size 1024 --n_layer 24 --n_head 16 --n_embd 1024  \
+                        --resolution 128 --sequence_length 64 --sample_every_n_latent_frames 4 --spatial_length 128 --max_steps 2000000
+```
+
+## Generation
 
 1. **Short videos:** To sample the videos of the same length with the training data, use the code under `scripts/` with the following flags:
 
@@ -63,66 +123,6 @@ python sample_vqgan_transformer_audio_cond.py \
 python sample_vqgan_transformer_hierarchical.py \
     --ckpt1 {AR-CKPT} --CKPT2 {Interpolation-CKPT} --vqgan {VQGAN-CKPT} \
     --dataset sky --top_k_init 2048 --top_p_init 0.8 --top_k 2048 --top_p 0.8 --temporal_sample_pos 1
-```
-
-## Training
-
-Example usages of training the VQGAN and transformers are shown below. Explanation of the flags that are opted to change according to different settings:
-
-- `data_path`: path to the dataset folder.
-- `default_root_dir`: path to save the checkpoints and the tensorboard logs.
-- `vqvae`: path to the trained VQGAN checkpoint.
-- `resolution`: the resolution of the training video clips.
-- `sequence_length`: frame number of the training video clips.
-- `discriminator_iter_start`: the step id to start the GAN losses.
-- `image_folder`: should be used when the dataset contains frames instead of videos, e.g. Sky Time-lapse.
-- `unconditional`: when no conditional information is available, e.g. Sky Time-lapse, use this flag.
-- `sample_every_n_frames`: number of frames to skip in the real video data, e.g. please set it to 4 when training on the Taichi-HD dataset.
-- `downsample`: sample rate in the dimensions of time, height, and width.
-- `no_random_restart`: whether to re-initialize the codebook tokens.
-
-### VQGAN
-```
-python train_vqgan.py --embedding_dim 256 --n_codes 16384 --n_hiddens 32 --downsample 4 8 8 --no_random_restart \
-                      --gpus 8 --sync_batchnorm --batch_size 2 --num_workers 32 --accumulate_grad_batches 6 \
-                      --progress_bar_refresh_rate 500 --max_steps 2000000 --gradient_clip_val 1.0 --lr 3e-5 \
-                      --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
-                      --resolution 128 --sequence_length 16 --discriminator_iter_start 10000 --norm_type batch \
-                      --perceptual_weight 4 --image_gan_weight 1 --video_gan_weight 1  --gan_feat_weight 4
-```
-
-### Transformer
-
-#### TATS-base Transformer
-
-```
-python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress_bar_refresh_rate 500 \
-                        --gpus 8 --sync_batchnorm --batch_size 3 --unconditional \
-                        --vqvae {VQGAN-CKPT} --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
-                        --vocab_size 16384 --block_size 1024 --n_layer 24 --n_head 16 --n_embd 1024  \
-                        --resolution 128 --sequence_length 16 --max_steps 2000000
-```
-
-To train a conditional transformer, remove the `--unconditional` flag and use the following flags
-
-- `cond_stage_key`: what kind of conditional information to be used. It can be `label`, `text`, or `stft`.
-- `stft_vqvae`: path to the trained VQGAN checkpoint for STFT features.
-- `text_cond`: use this flag to indicate BPE encoded text.
-
-
-#### TATS-hierarchical Transformer
-```
-python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress_bar_refresh_rate 500 \
-                        --gpus 8 --sync_batchnorm --batch_size 3 --unconditional \
-                        --vqvae {VQGAN-CKPT} --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
-                        --vocab_size 16384 --block_size 1280 --n_layer 24 --n_head 16 --n_embd 1024  \
-                        --resolution 128 --sequence_length 20 --spatial_length 128 --n_unmasked 256 --max_steps 2000000
-
-python train_transformer.py --num_workers 32 --val_check_interval 0.5 --progress_bar_refresh_rate 500 \
-                        --gpus 8 --sync_batchnorm --batch_size 4 --unconditional \
-                        --vqvae {VQGAN-CKPT} --data_path {DATAPATH} --default_root_dir {CKPTPATH} \
-                        --vocab_size 16384 --block_size 1024 --n_layer 24 --n_head 16 --n_embd 1024  \
-                        --resolution 128 --sequence_length 64 --sample_every_n_latent_frames 4 --spatial_length 128 --max_steps 2000000
 ```
 
 

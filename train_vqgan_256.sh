@@ -18,7 +18,7 @@ srun python -u train_vqgan.py \
     --embedding_dim 256 \
     --n_codes 16384 \
     --n_hiddens 32 \
-    --downsample 4 16 16 \
+    --downsample 4 8 8 \
     --no_random_restart \
     --gpus 4 \
     --sync_batchnorm \
@@ -33,7 +33,7 @@ srun python -u train_vqgan.py \
     --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_256" \
     --resolution 256 \
     --sequence_length 16 \
-    --discriminator_iter_start 18000 \
+    --discriminator_iter_start 20000 \
     --norm_type batch \
     --perceptual_weight 4 \
     --image_gan_weight 1 \
