@@ -17,15 +17,7 @@ def disabled_train(self, mode=True):
 
 
 class Net2NetTransformer(pl.LightningModule):
-    def __init__(self,
-                 args,
-                 ckpt_path=None,
-                 ignore_keys=[],
-                 first_stage_key="video",
-                 cond_stage_key="label",
-                 pkeep=1.0,
-                 sos_token=0,
-                 ):
+    def __init__(self, args, ckpt_path=None, ignore_keys=[], first_stage_key="video", cond_stage_key="label", pkeep=1.0, sos_token=0):
         super().__init__()
         self.args = args
         self.class_cond_dim = args.class_cond_dim
@@ -40,8 +32,7 @@ class Net2NetTransformer(pl.LightningModule):
         self.init_cond_stage_from_ckpt(args)
 
         gpt_vocab_size = self.first_stage_vocab_size + self.cond_stage_vocab_size
-        self.transformer = GPT(args, gpt_vocab_size, args.block_size, n_layer=args.n_layer, n_head=args.n_head, 
-                                n_embd=args.n_embd, vtokens_pos=args.vtokens_pos, n_unmasked=args.n_unmasked)
+        self.transformer = GPT(args, gpt_vocab_size, args.block_size, n_layer=args.n_layer, n_head=args.n_head, n_embd=args.n_embd, vtokens_pos=args.vtokens_pos, n_unmasked=args.n_unmasked)
 
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
@@ -109,8 +100,7 @@ class Net2NetTransformer(pl.LightningModule):
         z_indices = z_indices + self.cond_stage_vocab_size
 
         if self.training and self.pkeep < 1.0:
-            mask = torch.bernoulli(self.pkeep*torch.ones(z_indices.shape,
-                                                         device=z_indices.device))
+            mask = torch.bernoulli(self.pkeep*torch.ones(z_indices.shape, device=z_indices.device))
             mask = mask.round().to(dtype=torch.int64)
             r_indices = torch.randint_like(z_indices, self.transformer.config.vocab_size)
             a_indices = mask*z_indices+(1-mask)*r_indices
@@ -136,8 +126,7 @@ class Net2NetTransformer(pl.LightningModule):
         return out
 
     @torch.no_grad()
-    def sample(self, x, c, steps, temperature=1.0, sample=False, top_k=None,
-               callback=lambda k: None):
+    def sample(self, x, c, steps, temperature=1.0, sample=False, top_k=None, callback=lambda k: None):
         x = torch.cat((c,x),dim=1)
         block_size = self.transformer.get_block_size()
         assert not self.transformer.training
@@ -290,8 +279,7 @@ class Net2NetTransformer(pl.LightningModule):
         inter_params = decay & no_decay
         union_params = decay | no_decay
         assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
-        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
-                                                    % (str(param_dict.keys() - union_params), )
+        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" % (str(param_dict.keys() - union_params), )
 
         # create the pytorch optimizer object
         optim_groups = [

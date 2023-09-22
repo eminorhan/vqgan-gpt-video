@@ -33,6 +33,7 @@ srun python -u train_vqgan.py \
     --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_256" \
     --resolution 256 \
     --sequence_length 16 \
+    --frame_rate 8 \
     --discriminator_iter_start 20000 \
     --norm_type batch \
     --perceptual_weight 4 \

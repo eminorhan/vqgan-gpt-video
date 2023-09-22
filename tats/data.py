@@ -29,7 +29,7 @@ class VideoDataset(data.Dataset):
     Returns BCTHW videos in the range [-0.5, 0.5] """
     exts = ['avi', 'mp4', 'webm']
 
-    def __init__(self, data_folder, sequence_length, train=True, resolution=64, sample_every_n_frames=1):
+    def __init__(self, data_folder, sequence_length, train=True, resolution=64, frame_rate=None, sample_every_n_frames=1):
         """
         Args:
             data_folder: path to the folder with videos. The folder
@@ -52,7 +52,7 @@ class VideoDataset(data.Dataset):
         self.class_to_label = {c: i for i, c in enumerate(self.classes)}
 
         warnings.filterwarnings('ignore')
-        clips = VideoClips(files, sequence_length, num_workers=64)
+        clips = VideoClips(files, sequence_length, frame_rate=frame_rate, num_workers=64)
         self._clips = clips
 
     @property
@@ -241,10 +241,10 @@ class VideoData(pl.LightningDataModule):
                 dataset = Dataset(self.args.data_path, self.args.sequence_length, self.args.text_emb_model, train=train, resolution=self.args.resolution, image_channels=self.args.image_channels, text_len=self.args.text_seq_len, truncate_captions=self.args.truncate_captions)
             elif hasattr(self.args, 'sample_every_n_frames') and self.args.sample_every_n_frames>1:
                 Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, frame_rate=self.args.frame_rate, sample_every_n_frames=self.args.sample_every_n_frames)
             else:
                 Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution)
+                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, frame_rate=self.args.frame_rate)
         return dataset
 
     def _dataloader(self, train):
@@ -283,6 +283,7 @@ class VideoData(pl.LightningDataModule):
         parser.add_argument('--sequence_length', type=int, default=16)
         parser.add_argument('--resolution', type=int, default=128)
         parser.add_argument('--batch_size', type=int, default=32)
+        parser.add_argument('--frame_rate', type=int, default=None)
         parser.add_argument('--num_workers', type=int, default=8)
         parser.add_argument('--image_channels', type=int, default=3)
         parser.add_argument('--smap_cond', type=int, default=0)
