@@ -14,7 +14,7 @@ export MASTER_ADDR=$(hostname -s)
 export MASTER_PORT=$(shuf -i 10000-65500 -n 1)
 export WORLD_SIZE=4
 
-srun python -u train_gpt.py \
+srun python -u ../train_gpt.py \
     --num_workers 16 \
     --val_check_interval 0.5 \
     --progress_bar_refresh_rate 1000 \

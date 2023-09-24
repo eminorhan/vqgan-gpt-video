@@ -3,6 +3,7 @@ models_128/
 models_256/
 models_gpt/
 models_vqgan/
+models_256_16x16/
 
 *.png
 *.egg-info
