@@ -1,6 +1,5 @@
 **/__pycache__/
-models_128/
-models_256/
+models_256_8x16x16/
 models_gpt/
 models_vqgan/
 models_256_16x16/
