@@ -1,8 +1,8 @@
 **/__pycache__/
 models_256_8x16x16/
+models_256_16x16x16/
 models_gpt/
 models_vqgan/
-models_256_16x16/
 
 *.png
 *.egg-info
