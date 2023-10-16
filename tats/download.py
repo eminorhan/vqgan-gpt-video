@@ -8,6 +8,7 @@ import torch
 from .tats_vqgan import VQGAN
 from .tats_transformer import Net2NetTransformer
 
+
 def get_confirm_token(response):
     for key, value in response.cookies.items():
         if key.startswith('download_warning'):
@@ -53,6 +54,7 @@ def load_vqgan(vqgan_ckpt, device=torch.device('cpu')):
 
     return vqgan
 
+
 def load_transformer(gpt_ckpt, vqgan_ckpt, stft_vqgan_ckpt='', device=torch.device('cpu')):
     from pytorch_lightning.utilities.cloud_io import load as pl_load
     checkpoint = pl_load(gpt_ckpt)
@@ -60,6 +62,7 @@ def load_transformer(gpt_ckpt, vqgan_ckpt, stft_vqgan_ckpt='', device=torch.devi
     if stft_vqgan_ckpt:
         checkpoint['hyper_parameters']['args'].stft_vqvae = stft_vqgan_ckpt
     gpt = Net2NetTransformer._load_model_state(checkpoint)
+    gpt = gpt.to(device)
     gpt.eval()
 
     return gpt

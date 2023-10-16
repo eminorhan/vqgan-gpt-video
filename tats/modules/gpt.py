@@ -9,12 +9,9 @@ GPT model:
 """
 
 import math
-import logging
-
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-# from transformers import top_k_top_p_filtering
 
 def top_k_top_p_filtering(logits, top_k=0, top_p=1.0, filter_value=-float("Inf"), min_tokens_to_keep=1):
     """Filter a distribution of logits using top-k and/or nucleus (top-p) filtering
@@ -91,8 +88,7 @@ class CausalSelfAttention(nn.Module):
         # output projection
         self.proj = nn.Linear(config.n_embd, config.n_embd)
         # causal mask to ensure that attention is only applied to the left in the input sequence
-        mask = torch.tril(torch.ones(config.block_size,
-                                     config.block_size))
+        mask = torch.tril(torch.ones(config.block_size, config.block_size))
         if hasattr(config, "n_unmasked") and config.n_unmasked > 0:
             # mask[:, :config.n_unmasked] = 1
             # mask[:, -config.n_unmasked:] = 1
@@ -161,13 +157,11 @@ class Block(nn.Module):
 
 class GPT(nn.Module):
     """  the full GPT language model, with a context size of block_size """
-    def __init__(self, args, vocab_size, block_size, n_layer=12, n_head=8, n_embd=256,
-                 embd_pdrop=0., resid_pdrop=0., attn_pdrop=0., n_unmasked=0, vtokens_pos=False):
+    def __init__(self, args, vocab_size, block_size, n_layer=12, n_head=8, n_embd=256, embd_pdrop=0., resid_pdrop=0., attn_pdrop=0., n_unmasked=0, vtokens_pos=False):
         super().__init__()
-        config = GPTConfig(vocab_size=vocab_size, block_size=block_size,
-                           embd_pdrop=embd_pdrop, resid_pdrop=resid_pdrop, attn_pdrop=attn_pdrop,
-                           n_layer=n_layer, n_head=n_head, n_embd=n_embd,
-                           n_unmasked=n_unmasked)
+        
+        config = GPTConfig(vocab_size=vocab_size, block_size=block_size, embd_pdrop=embd_pdrop, resid_pdrop=resid_pdrop, attn_pdrop=attn_pdrop, n_layer=n_layer, n_head=n_head, n_embd=n_embd, n_unmasked=n_unmasked)
+
         # input embedding stem
         self.tok_emb = nn.Embedding(config.vocab_size, config.n_embd)
         self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd))
@@ -310,13 +304,13 @@ class GPT(nn.Module):
 
 
 @torch.no_grad()
-def sample_with_past(x, model, steps, temperature=1., sample_logits=True,
-                     top_k=None, top_p=None, callback=None, cbox=None):
+def sample_with_past(x, model, steps, temperature=1., sample_logits=True, top_k=None, top_p=None, callback=None, cbox=None):
     # x is conditioning
     sample = x
     cond_len = x.shape[1]
     past = None
     for n in range(steps):
+        print('Step:', n)
         if callback is not None:
             callback(n)
         if cbox is None:
@@ -343,8 +337,7 @@ def sample_with_past(x, model, steps, temperature=1., sample_logits=True,
 
 
 @torch.no_grad()
-def sample_with_past_and_future(x, x_future, model, steps, temperature=1., sample_logits=True,
-                     top_k=None, top_p=None, callback=None, cbox=None):
+def sample_with_past_and_future(x, x_future, model, steps, temperature=1., sample_logits=True, top_k=None, top_p=None, callback=None, cbox=None):
     # x is conditioning
     sample = x
     cond_len = x.shape[1]
