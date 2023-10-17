@@ -310,7 +310,6 @@ def sample_with_past(x, model, steps, temperature=1., sample_logits=True, top_k=
     cond_len = x.shape[1]
     past = None
     for n in range(steps):
-        print('Step:', n)
         if callback is not None:
             callback(n)
         if cbox is None:

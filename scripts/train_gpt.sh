@@ -31,7 +31,7 @@ srun python -u ../train_gpt.py \
     --n_embd 1024 \
     --sequence_length 16 \
     --num_workers 16 \
-    --val_check_interval 0.5 \
+    --val_check_interval 2 \
     --progress_bar_refresh_rate 1000 \
     --sync_batchnorm \
     --max_steps 2000000

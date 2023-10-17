@@ -18,7 +18,6 @@ parser.add_argument('--gpt_ckpt', type=str, default='')
 parser.add_argument('--vqgan_ckpt', type=str, default='')
 parser.add_argument('--save_dir', type=str, default='../samples')
 parser.add_argument('--save_name', type=str, default='demo')
-parser.add_argument('--run', type=int, default=0)
 parser.add_argument('--top_k', type=int, default=2048)
 parser.add_argument('--top_p', type=float, default=0.92)
 parser.add_argument('--n_sample', type=int, default=16)
@@ -45,7 +44,7 @@ def sample(model, batch_size, class_label, steps=256, temperature=None, top_k=No
     log["class_label"] = c_indices
     return log
 
-save_path = os.join.path(args.save_dir, args.save_name)
+save_path = os.path.join(args.save_dir, args.save_name)
 print(f'generating and saving video to {save_path}')
 os.makedirs(save_path, exist_ok=True)
 
@@ -58,6 +57,7 @@ n_batch = args.n_sample//args.batch_size+1
 with torch.no_grad():
     for sample_id in range(n_batch):
         logs = sample(gpt, batch_size=args.batch_size, class_label=0, steps=steps, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, latent_shape=gpt.first_stage_model.latent_shape)
+        print(f'generated sample {sample_id}')
         save_video_grid(logs['samples'], os.path.join(save_path, f'sample_{sample_id}.mp4'), n_row)
         if args.save_array:
             all_data.append(logs['samples'].cpu().data.numpy()) # 256*4 x 8 x 3 x 16 x 128 x 128 ?
