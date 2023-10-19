@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=480GB
 #SBATCH --time=48:00:00
-#SBATCH --job-name=train_vqgan_256_12x16x16_12fps
-#SBATCH --output=train_vqgan_256_12x16x16_12fps_%A_%a.out
+#SBATCH --job-name=train_vqgan_256_8x16x16_8fps_kinetics
+#SBATCH --output=train_vqgan_256_8x16x16_8fps_kinetics_%A_%a.out
 #SBATCH --array=0
 
 export MASTER_ADDR=$(hostname -s)
@@ -24,17 +24,17 @@ srun python -u ../train_vqgan.py \
     --sync_batchnorm \
     --batch_size 4 \
     --num_workers 16 \
-    --accumulate_grad_batches 4 \
+    --accumulate_grad_batches 8 \
     --progress_bar_refresh_rate 1000 \
     --max_steps 2000000 \
     --gradient_clip_val 1.0 \
     --lr 0.00005 \
-    --data_path "/scratch/eo41/data-video/minute/S" \
-    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_256_12x16x16_12fps" \
+    --data_path "/scratch/eo41/data-video/kinetics700-50shot" \
+    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_256_8x16x16_8fps_kinetics" \
     --resolution 256 \
-    --sequence_length 24 \
-    --frame_rate 12 \
-    --discriminator_iter_start 16000 \
+    --sequence_length 16 \
+    --frame_rate 8 \
+    --discriminator_iter_start 15000 \
     --norm_type batch \
     --perceptual_weight 4 \
     --image_gan_weight 1 \
