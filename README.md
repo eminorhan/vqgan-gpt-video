@@ -2,7 +2,7 @@
 This is my personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TATS) repository for video generation customized for my own purposes.
 
 ## Training
-The VQGAN and GPT parts of the model are trained separately. Example usages for training each partare provided below. 
+The VQGAN and GPT parts of the model are trained separately. Example usages for training each part are provided below. 
 
 ### VQGAN
 ```python
