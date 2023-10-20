@@ -2,9 +2,9 @@
 This is my personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TATS) repository for video generation customized for my own purposes.
 
 ## Training
-The VQGAN and GPT parts of the model are trained separately. Example usages for training each part are provided below. 
+The VQGAN and GPT parts of the model are trained separately (first VQGAN, then GPT). Examples of how to train each part are demonstrated below. 
 
-1. **VQGAN:** To train a VQGAN model on a set of videos: 
+**VQGAN:** To train a VQGAN model on a set of videos: 
 ```python
 python -u train_vqgan.py \
     --embedding_dim 256 \
@@ -43,7 +43,7 @@ Description of some of the flags:
 - `downsample`: sample rate in the dimensions of time, height, and width.
 - `no_random_restart`: whether to re-initialize the codebook tokens.
 
-2. **GPT:** To train a GPT model on a set of videos encoded with an already trained VQGAN model: 
+**GPT:** To train a GPT model on a set of videos encoded with an already trained VQGAN model: 
 ```python
 python -u train_gpt.py \
     --gpus 4 \
@@ -78,7 +78,7 @@ To train a conditional transformer, remove the `--unconditional` flag and use th
 - `text_cond`: use this flag to indicate BPE encoded text.
 
 ## Generation
-1. **Short videos:** To sample the videos of the same length as the training data:
+**Short videos:** To sample the videos of the same length as the training data:
 ```python
 python -u sample_short_videos.py \
     --gpt_ckpt GPT_CHECKPOINT \
@@ -102,7 +102,7 @@ To compute the FVD (Frechet video distance), the following flags are required:
 - `sample_every_n_frames`: number of frames to skip in the real video data.
 - `resolution`: the resolution of real videos to compute FVD.
 
-2. **Long videos:** To sample the videos longer than the training length with a sliding window:
+**Long videos:** To sample the videos longer than the training length with a sliding window:
 ```python
 python -u sample_long_videos.py \
     --gpt_ckpt GPT_CHECKPOINT \
