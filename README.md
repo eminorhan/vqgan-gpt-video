@@ -4,7 +4,7 @@ This is my personal copy of Songwei Ge's [TATS](https://github.com/SongweiGe/TAT
 ## Training
 The VQGAN and GPT parts of the model are trained separately. Example usages for training each part are provided below. 
 
-### VQGAN
+1. **VQGAN:** To train a VQGAN model on a set of videos: 
 ```python
 python -u train_vqgan.py \
     --embedding_dim 256 \
@@ -43,7 +43,7 @@ Description of some of the flags:
 - `downsample`: sample rate in the dimensions of time, height, and width.
 - `no_random_restart`: whether to re-initialize the codebook tokens.
 
-### GPT
+2. **GPT:** To train a GPT model on a set of videos encoded with an already trained VQGAN model: 
 ```python
 python -u train_gpt.py \
     --gpus 4 \
