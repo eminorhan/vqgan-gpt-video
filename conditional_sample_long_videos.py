@@ -11,34 +11,39 @@ from tats.utils import save_video_grid
 from tats.modules.gpt import sample_with_past
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--gpt_ckpt', type=str, default='')
-parser.add_argument('--vqgan_ckpt', type=str, default='')
 
-parser.add_argument('--save_dir', type=str, default='../samples_long')
-parser.add_argument('--save_name', type=str, default='demo')
+# pretrained checkpoints
+parser.add_argument('--gpt_ckpt', type=str, default='', help='path to pretrained gpt checkpoint')
+parser.add_argument('--vqgan_ckpt', type=str, default='', help='path to pretrained vqgan checkpoint')
 
-parser.add_argument('--top_k', type=int, default=2048)
-parser.add_argument('--top_p', type=float, default=0.92)
-parser.add_argument('--batch_size', type=int, default=16)
-parser.add_argument('--num_workers', type=int, default=16)
+# saving related arguments
+parser.add_argument('--save_dir', type=str, default='../samples_long', help='top level directory where generated samples will be saved')
+parser.add_argument('--save_name', type=str, default='demo', help='sub-directory name where generated samples will be saved')
+
+# sampling related arguments
+parser.add_argument('--top_k', type=int, default=2048, help='top-k filtering (only keep top-k tokens)')
+parser.add_argument('--top_p', type=float, default=0.92, help='nucleus (top-p) filtering parameter')
+parser.add_argument('--batch_size', type=int, default=16, help='batch size')
+parser.add_argument('--num_workers', type=int, default=16, help='number of workers')
 
 # arguments related to the conditioning videos
-parser.add_argument('--ctx_video_dir', type=str, default='test')
-parser.add_argument('--ctx_len', type=int, default=4)
-parser.add_argument('--sequence_length', type=int, default=16)
-parser.add_argument('--resolution', type=int, default=256)
-parser.add_argument('--frame_rate', type=int, default=8)
+parser.add_argument('--ctx_video_dir', type=str, default='train', help='path to conditioning videos')
+parser.add_argument('--ctx_len', type=int, default=4, help='number of temporal latents used for conditioning')
+parser.add_argument('--sequence_length', type=int, default=16, help='number of frames in video clips used for conditioning')
+parser.add_argument('--resolution', type=int, default=256, help='resolution of video clips used for conditioning')
+parser.add_argument('--frame_rate', type=int, default=8, help='frame rate of videos used for conditioning')
 
-parser.add_argument('--sample_length', type=int, default=256)
-parser.add_argument('--sample_resolution', type=int, default=16)
-parser.add_argument('--temporal_sample_pos', type=int, default=1)
-parser.add_argument('--save_array', action='store_true')
+# arguments related to generated videos
+parser.add_argument('--sample_length', type=int, default=256, help='total length of the generated video in temporal latents')
+parser.add_argument('--sample_resolution', type=int, default=16, help='spatial resolution of latents')
+parser.add_argument('--temporal_sample_pos', type=int, default=1, help='temporal stride used in generating the videos')
+parser.add_argument('--save_array', action='store_true', help='whether to save the generated samples as np array for later analysis')
 
 args = parser.parse_args()
 
 
 @torch.no_grad()
-def sample_long_fast(model, ctx, temporal_infer, spatial_infer, temporal_sample_pos, batch_size, temperature=1.):
+def sample_long_fast(model, ctx, ctx_frames, temporal_infer, spatial_infer, temporal_sample_pos, batch_size, temperature=1.):
     
     steps = slice_n_code = spatial_infer**2
 
@@ -64,6 +69,10 @@ def sample_long_fast(model, ctx, temporal_infer, spatial_infer, temporal_sample_
 
         x_sample = torch.cat(x_sample, 0)
         x_sample = torch.clamp(x_sample, -0.5, 0.5) + 0.5
+
+        x_sample[:, 0, ctx_frames:, :16, :16] = 1
+        x_sample[:, 1, ctx_frames:, :16, :16] = 0
+        x_sample[:, 2, ctx_frames:, :16, :16] = 0
 
     return x_sample
 
@@ -92,7 +101,8 @@ if __name__ == "__main__":
             ctx = ctx[:, :args.ctx_len, :, :]  # take the first ctx_len temporal latents
             ctx = ctx.reshape(ctx.shape[0], -1)
 
-            x_sample = sample_long_fast(gpt, ctx, args.sample_length, args.sample_resolution, temporal_sample_pos=args.temporal_sample_pos, batch_size=args.batch_size)
+            x_sample = sample_long_fast(gpt, ctx, 2*args.ctx_len, args.sample_length, args.sample_resolution, temporal_sample_pos=args.temporal_sample_pos, 
+                                        batch_size=args.batch_size)
 
             for j in range(ctx.shape[0]):
                 save_video_grid(torch.stack((x_sample[j], vid_clip[j]+0.5)), os.path.join(save_path, f'sample_{i}_{j}.mp4'), 1)
@@ -106,4 +116,4 @@ if __name__ == "__main__":
         _, _, C, T, H, W = all_data_np.shape
         all_data_np = np.transpose(all_data_np.reshape(-1, C, T, H, W), (0, 2, 3, 4, 1))
         n_total = all_data_np.shape[0]
-        np.save(os.path.join(save_path, 'samples_as_array.npy'), (all_data_np*255).astype(np.uint8)[np.random.permutation(n_total)[:args.n_sample]])
+        np.save(os.path.join(save_path, 'samples_as_array.npy'), (all_data_np*255).astype(np.uint8))  # save all?
