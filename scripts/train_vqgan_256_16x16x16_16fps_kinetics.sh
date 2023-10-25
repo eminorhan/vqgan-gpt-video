@@ -34,7 +34,7 @@ srun python -u ../train_vqgan.py \
     --resolution 256 \
     --sequence_length 32 \
     --frame_rate 16 \
-    --discriminator_iter_start 12500 \
+    --discriminator_iter_start 13000 \
     --norm_type batch \
     --perceptual_weight 4 \
     --image_gan_weight 1 \

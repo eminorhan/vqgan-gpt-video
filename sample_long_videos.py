@@ -26,17 +26,6 @@ parser.add_argument('--temporal_sample_pos', type=int, default=1)
 parser.add_argument('--save_array', action='store_true')
 args = parser.parse_args()
 
-gpt = load_transformer(args.gpt_ckpt, vqgan_ckpt=args.vqgan_ckpt).cuda().eval()
-
-########################################################################
-
-temporal_train, spatial_train, _ = gpt.first_stage_model.latent_shape
-all_data = []
-n_row = int(np.sqrt(args.batch_size))
-
-save_path = os.path.join(args.save_dir, args.save_name)
-print(f'generating and saving video to {save_path}')
-os.makedirs(save_path, exist_ok=True)
 
 @torch.no_grad()
 def sample_long(gpt, temporal_infer, spatial_infer, temporal_train, spatial_train, temporal_sample_pos, batch_size, class_label, temperature=1.):
@@ -130,21 +119,33 @@ def sample_long_fast(gpt, temporal_infer, spatial_infer, temporal_sample_pos, ba
     return x_sample
 
 
-n_batch = args.n_sample//args.batch_size
-with torch.no_grad():
-    for sample_id in tqdm.tqdm(range(n_batch)):
-        x_sample = sample_long_fast(gpt, args.sample_length, args.sample_resolution, temporal_sample_pos=args.temporal_sample_pos, batch_size=args.batch_size, class_label=0)
-        print(f'generated sample {sample_id}')
-        save_video_grid(x_sample, os.path.join(save_path, f'sample_{sample_id}.mp4'), n_row)
+if __name__ == "__main__":
 
-        if args.save_array:
-            all_data.append(x_sample.cpu().data.numpy()) # 256*4 x 8 x 3 x 16 x 128 x 128
+    # load pretrained GPT-video model
+    gpt = load_transformer(args.gpt_ckpt, vqgan_ckpt=args.vqgan_ckpt).cuda().eval()
 
+    temporal_train, spatial_train, _ = gpt.first_stage_model.latent_shape
+    all_data = []
+    n_row = int(np.sqrt(args.batch_size))
 
-if args.save_array:
-    print(f'saving numpy file to {save_path}')
-    all_data_np = np.array(all_data)
-    _, _, C, T, H, W = all_data_np.shape
-    all_data_np = np.transpose(all_data_np.reshape(-1, C, T, H, W), (0, 2, 3, 4, 1))
-    n_total = all_data_np.shape[0]
-    np.save(os.path.join(save_path, 'samples_as_array.npy'), (all_data_np*255).astype(np.uint8)[np.random.permutation(n_total)[:args.n_sample]])
+    save_path = os.path.join(args.save_dir, args.save_name)
+    print(f'generating and saving video to {save_path}')
+    os.makedirs(save_path, exist_ok=True)
+
+    n_batch = args.n_sample//args.batch_size
+    with torch.no_grad():
+        for sample_id in tqdm.tqdm(range(n_batch)):
+            x_sample = sample_long_fast(gpt, args.sample_length, args.sample_resolution, temporal_sample_pos=args.temporal_sample_pos, batch_size=args.batch_size, class_label=0)
+            print(f'generated sample {sample_id}')
+            save_video_grid(x_sample, os.path.join(save_path, f'sample_{sample_id}.mp4'), n_row)
+
+            if args.save_array:
+                all_data.append(x_sample.cpu().data.numpy()) # 256*4 x 8 x 3 x 16 x 128 x 128
+
+    if args.save_array:
+        print(f'saving numpy file to {save_path}')
+        all_data_np = np.array(all_data)
+        _, _, C, T, H, W = all_data_np.shape
+        all_data_np = np.transpose(all_data_np.reshape(-1, C, T, H, W), (0, 2, 3, 4, 1))
+        n_total = all_data_np.shape[0]
+        np.save(os.path.join(save_path, 'samples_as_array.npy'), (all_data_np*255).astype(np.uint8)[np.random.permutation(n_total)[:args.n_sample]])

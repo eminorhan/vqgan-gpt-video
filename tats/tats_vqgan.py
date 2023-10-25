@@ -3,15 +3,13 @@
 import math
 import argparse
 import numpy as np
-import pickle as pkl
 
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
 
-from .utils import shift_dim, adopt_weight, comp_getattr
+from .utils import shift_dim, adopt_weight
 from .modules import LPIPS, Codebook
 
 def silu(x):
@@ -121,7 +119,6 @@ class VQGAN(pl.LightningModule):
             
             disc_factor = adopt_weight(self.global_step, threshold=self.args.discriminator_iter_start)
             aeloss = disc_factor * g_loss
-
 
             # gan feature matching loss
             image_gan_feat_loss = 0
@@ -445,8 +442,6 @@ class NLayerDiscriminator(nn.Module):
             return res[-1], res[1:]
         else:
             return self.model(input)
-
-
 
 
 class NLayerDiscriminator3D(nn.Module):

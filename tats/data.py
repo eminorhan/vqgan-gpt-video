@@ -52,7 +52,7 @@ class VideoDataset(data.Dataset):
         self.class_to_label = {c: i for i, c in enumerate(self.classes)}
 
         warnings.filterwarnings('ignore')
-        clips = VideoClips(files, sequence_length, frame_rate=frame_rate, num_workers=64)
+        clips = VideoClips(files, sequence_length, frame_rate=frame_rate, num_workers=32)
         self._clips = clips
 
     @property

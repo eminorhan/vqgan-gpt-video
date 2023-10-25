@@ -304,7 +304,7 @@ class GPT(nn.Module):
 
 
 @torch.no_grad()
-def sample_with_past(x, model, steps, temperature=1., sample_logits=True, top_k=None, top_p=None, callback=None, cbox=None):
+def sample_with_past(x, model, steps, temperature=1., sample_logits=True, top_k=None, top_p=None, callback=None, cbox=None, cutoff_ctx=True):
     # x is conditioning
     sample = x
     cond_len = x.shape[1]
@@ -331,7 +331,8 @@ def sample_with_past(x, model, steps, temperature=1., sample_logits=True, top_k=
         # append to the sequence and continue
         sample = torch.cat((sample, x), dim=1)
     del past
-    sample = sample[:, cond_len:]  # cut conditioning off
+    if cutoff_ctx:
+        sample = sample[:, cond_len:]  # cut conditioning off
     return sample
 
 

@@ -2,15 +2,14 @@
 
 import torch
 import argparse
-import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-from .utils import shift_dim, accuracy, comp_getattr, ForkedPdb
+from .utils import shift_dim, accuracy
 from .modules.gpt import GPT
 from .modules.encoders import Labelator, SOSProvider, Identity
 
-def disabled_train(self, mode=True):
+def disabled_train(self):
     """Overwrite model.train with this function to make sure train/eval mode
     does not change anymore."""
     return self

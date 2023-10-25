@@ -119,8 +119,7 @@ def save_video_grid(video, fname, nrow=None, fps=6):
         nrow = math.ceil(math.sqrt(b))
     ncol = math.ceil(b / nrow)
     padding = 1
-    video_grid = np.zeros((t, (padding + h) * nrow + padding,
-                           (padding + w) * ncol + padding, c), dtype='uint8')
+    video_grid = np.zeros((t, (padding + h) * nrow + padding, (padding + w) * ncol + padding, c), dtype='uint8')
     print(video_grid.shape)
     for i in range(b):
         r = i // ncol
