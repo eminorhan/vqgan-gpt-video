@@ -17,9 +17,6 @@ def main():
     args = parser.parse_args()
 
     data = VideoData(args)
-    # pre-make relevant cached files if necessary
-    data.train_dataloader()
-    data.test_dataloader()
 
     args.class_cond_dim = data.n_classes if not args.unconditional and args.cond_stage_key=='label' else None
     model = Net2NetTransformer(args, first_stage_key=args.first_stage_key, cond_stage_key=args.cond_stage_key)

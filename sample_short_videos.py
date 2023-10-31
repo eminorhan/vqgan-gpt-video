@@ -14,15 +14,20 @@ from tats.utils import shift_dim
 
 parser = argparse.ArgumentParser()
 parser = VideoData.add_data_specific_args(parser)
+
 parser.add_argument('--gpt_ckpt', type=str, default='')
 parser.add_argument('--vqgan_ckpt', type=str, default='')
+
 parser.add_argument('--save_dir', type=str, default='../samples')
 parser.add_argument('--save_name', type=str, default='demo')
+
 parser.add_argument('--top_k', type=int, default=2048)
 parser.add_argument('--top_p', type=float, default=0.92)
 parser.add_argument('--n_sample', type=int, default=16)
+
 parser.add_argument('--save_array', action='store_true')
 parser.add_argument('--compute_fvd', action='store_true')
+
 args = parser.parse_args()
 
 
@@ -57,13 +62,14 @@ if __name__ == "__main__":
     steps = np.prod(gpt.first_stage_model.latent_shape)
     all_data = []
     n_row = int(np.sqrt(args.batch_size))
-    n_batch = args.n_sample//args.batch_size+1
+    n_batch = args.n_sample // args.batch_size+1
 
     with torch.no_grad():
         for sample_id in range(n_batch):
-            logs = sample(gpt, batch_size=args.batch_size, class_label=0, steps=steps, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, latent_shape=gpt.first_stage_model.latent_shape)
+            logs = sample(gpt, batch_size=args.batch_size, class_label=0, steps=steps, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, 
+                          latent_shape=gpt.first_stage_model.latent_shape)
             print(f'generated sample {sample_id}')
-            save_video_grid(logs['samples'], os.path.join(save_path, f'sample_{sample_id}.mp4'), n_row)
+            save_video_grid(logs['samples'], os.path.join(save_path, f'sample_{sample_id}.mp4'), 2)
             if args.save_array:
                 all_data.append(logs['samples'].cpu().data.numpy())
 

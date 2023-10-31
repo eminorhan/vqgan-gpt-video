@@ -16,22 +16,22 @@ export WORLD_SIZE=4
 
 srun python -u ../train_gpt.py \
     --gpus 4 \
-    --batch_size 6 \
-    --accumulate_grad_batches 4 \
-    --frame_rate 8 \
+    --batch_size 1 \
+    --accumulate_grad_batches 8 \
+    --frame_rate 16 \
     --resolution 256 \
     --unconditional \
-    --vqvae "/scratch/eo41/vqgan-gpt-video/models_vqgan/vqgan_256_8x16x16_8fps_28k.ckpt" \
+    --vqvae "/scratch/eo41/vqgan-gpt-video/models_vqgan/vqgan_256_16x16x16_16fps_11k.ckpt" \
     --data_path "/scratch/eo41/data-video/minute/S" \
-    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_gpt/model_256_8x16x16_8fps_28k" \
+    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_gpt/model_256_16x16x16_16fps_11k" \
     --vocab_size 16384 \
-    --block_size 2048 \
-    --n_layer 24 \
-    --n_head 16 \
-    --n_embd 1024 \
-    --sequence_length 16 \
+    --block_size 4096 \
+    --n_layer 32 \
+    --n_head 20 \
+    --n_embd 1280 \
+    --sequence_length 32 \
     --num_workers 16 \
-    --val_check_interval 2 \
+    --check_val_every_n_epoch 100 \
     --progress_bar_refresh_rate 1000 \
     --sync_batchnorm \
     --max_steps 2000000
