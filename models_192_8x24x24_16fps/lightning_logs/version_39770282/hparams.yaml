@@ -11,16 +11,16 @@ args: !!python/object:argparse.Namespace
   check_val_every_n_epoch: 1
   checkpoint_callback: null
   data_path: /scratch/eo41/data-video/minute/S
-  default_root_dir: /scratch/eo41/vqgan-gpt-video/models_256_4x32x32_8fps
+  default_root_dir: /scratch/eo41/vqgan-gpt-video/models_192_8x24x24_16fps
   detect_anomaly: false
   deterministic: false
   devices: null
   disc_channels: 64
   disc_layers: 3
   disc_loss_type: hinge
-  discriminator_iter_start: 26000
+  discriminator_iter_start: 54000
   downsample:
-  - 4
+  - 2
   - 8
   - 8
   embedding_dim: 256
@@ -29,7 +29,7 @@ args: !!python/object:argparse.Namespace
   enable_progress_bar: true
   fast_dev_run: false
   flush_logs_every_n_steps: null
-  frame_rate: 8
+  frame_rate: 16
   gan_feat_weight: 4.0
   gpus: 4
   gradient_clip_algorithm: null
@@ -75,7 +75,7 @@ args: !!python/object:argparse.Namespace
   reload_dataloaders_every_epoch: false
   reload_dataloaders_every_n_epochs: 0
   replace_sampler_ddp: true
-  resolution: 256
+  resolution: 192
   restart_thres: 1.0
   resume_from_checkpoint: null
   sample_every_n_frames: 1

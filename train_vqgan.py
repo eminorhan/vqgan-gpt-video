@@ -1,6 +1,5 @@
 # Copyright (c) Meta Platforms, Inc. All Rights Reserved
 
-import os
 import argparse
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -35,31 +34,14 @@ def main():
     if args.gpus > 1:
         kwargs = dict(strategy='ddp', gpus=args.gpus)
 
-    # load the most recent checkpoint file
-    base_dir = os.path.join(args.default_root_dir, 'lightning_logs')
-    if os.path.exists(base_dir):
-        log_folder = ckpt_file = ''
-        version_id_used = step_used = 0
-        for folder in os.listdir(base_dir):
-            version_id = int(folder.split('_')[1])
-            if version_id > version_id_used:
-                version_id_used = version_id
-                log_folder = folder
-        if len(log_folder) > 0:
-            ckpt_folder = os.path.join(base_dir, log_folder, 'checkpoints')
-            for fn in os.listdir(ckpt_folder):
-                if fn == 'latest_checkpoint.ckpt':
-                    ckpt_file = 'latest_checkpoint_prev.ckpt'
-                    os.rename(os.path.join(ckpt_folder, fn), os.path.join(ckpt_folder, ckpt_file))
-            if len(ckpt_file) > 0:
-                args.resume_from_checkpoint = os.path.join(ckpt_folder, ckpt_file)
-                print('will start from the recent ckpt %s'%args.resume_from_checkpoint)
+    # resuming from a checkpoint?
+    if args.resume_from_checkpoint:
+        print(f"will start from the recent ckpt {args.resume_from_checkpoint}")
+    else:
+        print(f"will start training from scratch")
 
     trainer = pl.Trainer.from_argparse_args(args, callbacks=callbacks, max_steps=args.max_steps, **kwargs)
-
     trainer.fit(model, data)
-
 
 if __name__ == '__main__':
     main()
-

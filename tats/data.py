@@ -20,7 +20,6 @@ import torch.distributed as dist
 from torchvision.datasets.video_utils import VideoClips
 import pytorch_lightning as pl
 
-from .coinrun.coinrun_data import CoinRunDataset
 from .coinrun.tokenizer import tokenizer
 
 
@@ -206,45 +205,27 @@ class VideoData(pl.LightningDataModule):
         return dataset.n_classes
 
     def _dataset(self, train):
-        # check if it's coinrun dataset (path contains coinrun and it's a directory)
-        if osp.isdir(self.args.data_path) and 'coinrun' in self.args.data_path.lower():
-            if hasattr(self.args, 'coinrun_v2_dataloader') and self.args.coinrun_v2_dataloader:
-                Dataset = CoinRunDatasetV2
-            else:
-                Dataset = CoinRunDataset
-            if hasattr(self.args, 'smap_cond') and self.args.smap_cond:
-                dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_seg_map=True)
-            elif hasattr(self.args, 'text_cond') and self.args.text_cond:
-                if self.args.smap_only:
-                    dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_game_frame=False, get_seg_map=True, get_text_desc=True)
-                else:
-                    dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_text_desc=True)
-            elif self.args.smap_only:
-                dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train, get_game_frame=False, get_seg_map=True)
-            else:
-                dataset = Dataset(data_folder=self.args.data_path, args=self.args, train=train)
+        if hasattr(self.args, 'vtokens') and self.args.vtokens:
+            Dataset = HDF5Dataset_vtokens
+            dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, spatial_length=self.args.spatial_length, sample_every_n_frames=self.args.sample_every_n_frames)
+        elif hasattr(self.args, 'image_folder') and self.args.image_folder:
+            Dataset = FrameDataset
+            dataset = Dataset(self.args.data_path, self.args.sequence_length, resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
+        elif hasattr(self.args, 'stft_data') and self.args.stft_data:
+            Dataset = StftDataset
+            dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, sample_every_n_frames=self.args.sample_every_n_frames)
+        elif hasattr(self.args, 'smap_cond') and self.args.smap_cond:
+            Dataset = HDF5Dataset_smap
+            dataset = Dataset(self.args.data_path, self.args.data_path2, self.args.sequence_length, train=train, resolution=self.args.resolution, image_channels1=self.args.image_channels1, image_channels2=self.args.image_channels2)
+        elif hasattr(self.args, 'text_cond') and self.args.text_cond:
+            Dataset = HDF5Dataset_text
+            dataset = Dataset(self.args.data_path, self.args.sequence_length, self.args.text_emb_model, train=train, resolution=self.args.resolution, image_channels=self.args.image_channels, text_len=self.args.text_seq_len, truncate_captions=self.args.truncate_captions)
+        elif hasattr(self.args, 'sample_every_n_frames') and self.args.sample_every_n_frames>1:
+            Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
+            dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, frame_rate=self.args.frame_rate, sample_every_n_frames=self.args.sample_every_n_frames)
         else:
-            if hasattr(self.args, 'vtokens') and self.args.vtokens:
-                Dataset = HDF5Dataset_vtokens
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, spatial_length=self.args.spatial_length, sample_every_n_frames=self.args.sample_every_n_frames)
-            elif hasattr(self.args, 'image_folder') and self.args.image_folder:
-                Dataset = FrameDataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, resolution=self.args.resolution, sample_every_n_frames=self.args.sample_every_n_frames)
-            elif hasattr(self.args, 'stft_data') and self.args.stft_data:
-                Dataset = StftDataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, sample_every_n_frames=self.args.sample_every_n_frames)
-            elif hasattr(self.args, 'smap_cond') and self.args.smap_cond:
-                Dataset = HDF5Dataset_smap
-                dataset = Dataset(self.args.data_path, self.args.data_path2, self.args.sequence_length, train=train, resolution=self.args.resolution, image_channels1=self.args.image_channels1, image_channels2=self.args.image_channels2)
-            elif hasattr(self.args, 'text_cond') and self.args.text_cond:
-                Dataset = HDF5Dataset_text
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, self.args.text_emb_model, train=train, resolution=self.args.resolution, image_channels=self.args.image_channels, text_len=self.args.text_seq_len, truncate_captions=self.args.truncate_captions)
-            elif hasattr(self.args, 'sample_every_n_frames') and self.args.sample_every_n_frames>1:
-                Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, frame_rate=self.args.frame_rate, sample_every_n_frames=self.args.sample_every_n_frames)
-            else:
-                Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
-                dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, frame_rate=self.args.frame_rate)
+            Dataset = VideoDataset if osp.isdir(self.args.data_path) else HDF5Dataset
+            dataset = Dataset(self.args.data_path, self.args.sequence_length, train=train, resolution=self.args.resolution, frame_rate=self.args.frame_rate)
         return dataset
 
     def _dataloader(self, train):
@@ -274,7 +255,6 @@ class VideoData(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
-
 
     @staticmethod
     def add_data_specific_args(parent_parser):
@@ -409,11 +389,7 @@ class HDF5Dataset_text(data.Dataset):
         if self.text_emb_model == 'bert':
             tokenized_text = self.tokenizer.encode(np.random.choice(self._text_annos[idx].split('\t')), padding='max_length', max_length=self.text_len, truncation=self.truncate_captions, return_tensors='pt').squeeze()
         else:
-            tokenized_text = self.tokenizer.tokenize(
-                np.random.choice(self._text_annos[idx].split('\t')),
-                self.text_len,
-                truncate_text=self.truncate_captions
-            ).squeeze(0)
+            tokenized_text = self.tokenizer.tokenize(np.random.choice(self._text_annos[idx].split('\t')), self.text_len, truncate_text=self.truncate_captions).squeeze(0)
         return dict(**preprocess(video, self.resolution), text=tokenized_text)
 
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
             logs = sample(gpt, batch_size=args.batch_size, class_label=0, steps=steps, temperature=1., top_k=args.top_k, top_p=args.top_p, verbose_time=False, 
                           latent_shape=gpt.first_stage_model.latent_shape)
             print(f'generated sample {sample_id}')
-            save_video_grid(logs['samples'], os.path.join(save_path, f'sample_{sample_id}.mp4'), 2)
+            save_video_grid(logs['samples'], os.path.join(save_path, f'sample_{sample_id}.mp4'), 1)
             if args.save_array:
                 all_data.append(logs['samples'].cpu().data.numpy())
 
