@@ -21,7 +21,7 @@ def main():
     model = Net2NetTransformer(args, first_stage_key=args.first_stage_key, cond_stage_key=args.cond_stage_key)
 
     callbacks = []
-    callbacks.append(ModelCheckpoint(every_n_train_steps=1000, save_top_k=-1, filename='{epoch}-{step}-{train/loss:.2f}'))
+    callbacks.append(ModelCheckpoint(every_n_train_steps=500, save_top_k=-1, filename='{epoch}-{step}-{train/loss:.2f}'))
     callbacks.append(ModelCheckpoint(monitor='val/loss', mode='min', save_top_k=3, filename='best_checkpoint'))
 
     kwargs = dict()
@@ -30,12 +30,9 @@ def main():
         kwargs = dict(gpus=args.gpus, plugins=[pl.plugins.DDPPlugin(find_unused_parameters=False)])
 
     # configure learning rate
-    bs, base_lr = args.batch_size, args.base_lr
-    ngpu = args.gpus
-    accumulate_grad_batches = args.accumulate_grad_batches or 1
-    print(f"accumulate_grad_batches = {accumulate_grad_batches}")
-    model.learning_rate = accumulate_grad_batches * ngpu * bs * base_lr
-    print("Setting lr to {:.2e} = {} (accumulate_grad_batches) * {} (num_gpus) * {} (batchsize) * {:.2e} (base_lr)".format(model.learning_rate, accumulate_grad_batches, ngpu, bs, base_lr))
+    bs, base_lr, ngpu, accumulate = args.batch_size, args.base_lr, args.gpus, args.accumulate_grad_batches
+    model.learning_rate = accumulate * ngpu * bs * base_lr
+    print("Setting lr to {:.2e} = {} (accumulate_grad_batches) * {} (num_gpus) * {} (batchsize) * {:.2e} (base_lr)".format(model.learning_rate, accumulate, ngpu, bs, base_lr))
 
     # resuming from a checkpoint?
     if args.resume_from_checkpoint:

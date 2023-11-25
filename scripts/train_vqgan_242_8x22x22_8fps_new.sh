@@ -5,9 +5,9 @@
 #SBATCH --gres=gpu:a100:4
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=480GB
-#SBATCH --time=48:00:00
-#SBATCH --job-name=train_vqgan_192_8x24x24_16fps
-#SBATCH --output=train_vqgan_192_8x24x24_16fps_%A_%a.out
+#SBATCH --time=1:00:00
+#SBATCH --job-name=train_vqgan_242_8x22x22_8fps_new
+#SBATCH --output=train_vqgan_242_8x22x22_8fps_new_%A_%a.out
 #SBATCH --array=0
 
 export MASTER_ADDR=$(hostname -s)
@@ -18,7 +18,7 @@ srun python -u ../train_vqgan.py \
     --embedding_dim 256 \
     --n_codes 16384 \
     --n_hiddens 32 \
-    --downsample 2 8 8 \
+    --downsample 2 11 11 \
     --no_random_restart \
     --gpus 4 \
     --sync_batchnorm \
@@ -30,11 +30,11 @@ srun python -u ../train_vqgan.py \
     --gradient_clip_val 1.0 \
     --lr 0.00005 \
     --data_path "/scratch/eo41/data-video/minute/S" \
-    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_192_8x24x24_16fps" \
-    --resolution 192 \
+    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_242_8x22x22_8fps_new" \
+    --resolution 242 \
     --sequence_length 16 \
-    --frame_rate 16 \
-    --discriminator_iter_start 54000 \
+    --frame_rate 8 \
+    --discriminator_iter_start 26000 \
     --norm_type batch \
     --perceptual_weight 4 \
     --image_gan_weight 1 \

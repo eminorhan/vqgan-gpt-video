@@ -132,7 +132,7 @@ if __name__ == "__main__":
     print(f'generating and saving video to {save_path}')
     os.makedirs(save_path, exist_ok=True)
 
-    n_batch = args.n_sample//args.batch_size
+    n_batch = args.n_sample // args.batch_size
     with torch.no_grad():
         for sample_id in tqdm.tqdm(range(n_batch)):
             x_sample = sample_long_fast(gpt, args.sample_length, args.sample_resolution, temporal_sample_pos=args.temporal_sample_pos, batch_size=args.batch_size, class_label=0)

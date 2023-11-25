@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=480GB
 #SBATCH --time=48:00:00
-#SBATCH --job-name=train_gpt
-#SBATCH --output=train_gpt_%A_%a.out
+#SBATCH --job-name=train_gpt_large
+#SBATCH --output=train_gpt_large_%A_%a.out
 #SBATCH --array=0
 
 export MASTER_ADDR=$(hostname -s)
@@ -18,14 +18,14 @@ export WORLD_SIZE=4
 srun python -u ../train_gpt.py \
     --gpus 4 \
     --batch_size 1 \
-    --accumulate_grad_batches 16 \
-    --base_lr 0.000005 \
-    --frame_rate 16 \
+    --accumulate_grad_batches 32 \
+    --base_lr 0.000002 \
+    --frame_rate 8 \
     --resolution 192 \
     --unconditional \
-    --vqvae "/scratch/eo41/vqgan-gpt-video/models_vqgan/vqgan_192_8x24x24_16fps_54k.ckpt" \
+    --vqvae "/scratch/eo41/vqgan-gpt-video/models_vqgan/vqgan_192_8x24x24_8fps_57k.ckpt" \
     --data_path "/scratch/eo41/data-video/minute/S" \
-    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_gpt/model_192_8x24x24_16fps_54k" \
+    --default_root_dir "/scratch/eo41/vqgan-gpt-video/models_gpt/model_192_8x24x24_8fps_57k_large" \
     --vocab_size 16384 \
     --block_size 4608 \
     --n_layer 28 \
